@@ -10,7 +10,6 @@ struct Deque{
 
 pthread_mutex_t mutex;
 pthread_cond_t player1_sem, player2_sem, player3_sem, dealer_sem;
-int *deck;
 struct Deque* head = NULL;
 struct Deque* tail = NULL;
 int winner = 0;
@@ -22,23 +21,6 @@ int draw;
 int decksize = 52;
 
 
-void push(int val){
-
-	struct Deque* newNode = (struct Deque*)malloc(sizeof(struct Deque));
-	newNode->val = val;
-	newNode->next = NULL;
-
-	if( head == NULL ){
-		head = newNode;
-		tail = newNode;
-	}else{
-
-		tail->next = newNode;
-		tail = newNode;	
-	}
-
-	
-}
 
 void push_back(int val){
 	
@@ -51,9 +33,11 @@ void push_back(int val){
 		tail = tail->next;
 	}else{
 		tail = newNode;
+		head = newNode;
 	}
 	
 }
+
 
 int pop(){
 	
@@ -95,38 +79,15 @@ void displayDeque(){
 }
 
 
-void shuffleArray(void* seed){
-	long s = (long)seed;
-	int temp, r, i;
-	srand(s);
 
-	for(i = 0; i<52; i++){
-		r = rand()%52;
-		temp = deck[i];
-		deck[i] = deck[r];
-		deck[r] = temp;
-	}
+void generateDeque(){
+	int i, j;
+	for(i=0; i<13; i++)
+		for(j=0; j<4; j++)
+			push_back(i+1);
 }
 
 
-void generateArray(){
-	int i;
-	int j;
-	for(i = 0; i < 13; i++){
-		for(j = 0; j < 4; j++){
-			deck[i*4+j] = i+1;
-		}
-	}
-}
-
-
-void arraytoDeque(){
-	
-	int i;
-
-	for( i = 0; i < decksize; i++)
-		push(deck[i]);
-}
 
 void destroyDeque(){
 
@@ -144,12 +105,6 @@ void destroyDeque(){
 	tail = NULL;
 }
 
-void dequetoArray(){
-	int i;
-	for( i = 0; i < 52; i++ )
-		deck[i] = pop();
-}
-
 
 void shuffleDeque(void* val){
 	
@@ -158,30 +113,59 @@ void shuffleDeque(void* val){
 	struct Deque* prevNode;
 	int i, j, s, r;
 	long seed = (long)val;
+	int count;
 
-	shuffleNode = malloc(sizeof(struct Deque));
+	//start nodePtr at head
 	nodePtr = head;
-	s = dequeSize() - 1;
+	//dequesize - 2 along with the inner for loop ensure that
+	//we will not go out of bounds with our randomizing;
+	//praise Jesus, this took me forever to figure out
+	s = dequeSize() - 2;
 	srand(seed);
 	
-	for(i = 0; i < 300; i++){
+	//iterate enought times to touch at least each element of the deque and place
+	//it in a random spot
+	for(i = 0; i < 300000; i++){
 
+		shuffleNode = malloc(sizeof(struct Deque));
 		shuffleNode->val = head->val;
 		shuffleNode->next = NULL;
 		nodePtr = head->next;
 		free(head);
 		head = nodePtr;
-		r = rand();
+		r = (rand() % s);
 
-		for(j = 0; j < 7; j++){
+		printf("taking value %d off the top\n", shuffleNode->val);
+
+		for(j = 0; j <= r % s; j++){
 			prevNode = nodePtr;
 			nodePtr = nodePtr->next;
+			count++;
 		}
 
-		prevNode->next = shuffleNode;
-		shuffleNode->next = nodePtr;	
+		
+		printf("inserting value in spot %d\n", count); fflush(stdout);
+		printf("prev node: %d\n", prevNode->val); fflush(stdout);
+		printf("nodePtr: %d\n", nodePtr->val); fflush(stdout);
+		printf("head: %d\n", head->val); fflush(stdout);
+		printf("tail: %d\n", tail->val); fflush(stdout);
+		printf("r mod s: %d\n", r % s); fflush(stdout);
+		count = 0;
+
+		if(nodePtr == NULL){
+			prevNode->next = shuffleNode;
+		}else{
+			shuffleNode->next = nodePtr;
+			prevNode->next = shuffleNode;
+		}
+		displayDeque();
 	}
 	
+	//restore tail pointer
+	nodePtr = head;
+	while(nodePtr->next != NULL)
+		nodePtr = nodePtr->next;
+	tail = nodePtr;
 }
 
 void* dealer(void* seed){
@@ -343,22 +327,21 @@ int main(int argc, char* argv[]){
 	}
 
 	if(seed == 1){
-	
-		printf("Generating Deque\n");
-		fflush(stdout);
-		for (i = 0; i < 15; i++)
-			push(i);
-		printf("Displaying Deque\n");
-		fflush(stdout);
 
+		generateDeque();
 		displayDeque();
+		printf("deque size: %d\n", dequeSize());
+		printf("SHUFFLING DEQUE\n");
+		fflush(stdout);
+		shuffleDeque((void*)seed);
+		displayDeque();
+		printf("deque size: %d\n", dequeSize());
 		return 0;
+	
 	}
 	
-	deck = (int*)malloc(52 * sizeof(int));
-	//generate starting array(deck)
-	generateArray();
-	arraytoDeque();
+	//generate deck
+	generateDeque();
 
 	
 	//I need a thread handle for the dealer and 3 players
