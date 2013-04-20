@@ -113,7 +113,6 @@ void shuffleDeque(void* val){
 	struct Deque* prevNode;
 	int i, j, s, r;
 	long seed = (long)val;
-	int count;
 
 	//start nodePtr at head
 	nodePtr = head;
@@ -125,7 +124,7 @@ void shuffleDeque(void* val){
 	
 	//iterate enought times to touch at least each element of the deque and place
 	//it in a random spot
-	for(i = 0; i < 300000; i++){
+	for(i = 0; i < 52; i++){
 
 		shuffleNode = malloc(sizeof(struct Deque));
 		shuffleNode->val = head->val;
@@ -135,30 +134,17 @@ void shuffleDeque(void* val){
 		head = nodePtr;
 		r = (rand() % s);
 
-		printf("taking value %d off the top\n", shuffleNode->val);
-
 		for(j = 0; j <= r % s; j++){
 			prevNode = nodePtr;
 			nodePtr = nodePtr->next;
-			count++;
 		}
-
 		
-		printf("inserting value in spot %d\n", count); fflush(stdout);
-		printf("prev node: %d\n", prevNode->val); fflush(stdout);
-		printf("nodePtr: %d\n", nodePtr->val); fflush(stdout);
-		printf("head: %d\n", head->val); fflush(stdout);
-		printf("tail: %d\n", tail->val); fflush(stdout);
-		printf("r mod s: %d\n", r % s); fflush(stdout);
-		count = 0;
-
 		if(nodePtr == NULL){
 			prevNode->next = shuffleNode;
 		}else{
 			shuffleNode->next = nodePtr;
 			prevNode->next = shuffleNode;
 		}
-		displayDeque();
 	}
 	
 	//restore tail pointer
@@ -185,14 +171,9 @@ void* dealer(void* seed){
 
 		//shuffle deque
 		displayDeque();
-		printf("Dequesize(): %d\n", dequeSize());
 		printf("Dealer Shuffling\n"); fflush(stdout);
 		shuffleDeque(seed);
 		displayDeque();
-//		dequetoArray();
-//		shuffleArray(seed);
-//		destroyDeque();
-//		arraytoDeque();
 
 		//Dealer deals
 		printf("Dealer dealing:\n");
@@ -228,9 +209,11 @@ void* player1(){
 			push_back(draw);
 			current_round++;
 		}else{
-			printf("RETURNING CARDS\n");
-			push_back(player1_hand);
-			push_back(draw);
+			printf("RETURNING CARD\n");
+			if(rand() % 2 == 1)
+				push_back(player1_hand);
+			else
+				push_back(draw);
 		}
 	
 		pthread_mutex_unlock(&mutex);
@@ -259,9 +242,12 @@ void* player2(){
 			push_back(draw);
 			current_round++;
 		}else{
-			printf("RETURNING CARDS\n");
-			push_back(player2_hand);
-			push_back(draw);
+			printf("RETURNING CARD\n");
+			if( rand() % 2 == 1 )
+				push_back(player2_hand);
+			else
+				push_back(draw);
+
 		}
 	
 		pthread_mutex_unlock(&mutex);
@@ -291,9 +277,11 @@ void* player3(){
 			push_back(draw);
 			current_round++;
 		}else{
-			printf("RETURNING CARDS\n");
-			push_back(player3_hand);
-			push_back(draw);
+			printf("RETURNING CARD\n");
+			if( rand() % 2 == 1 )
+				push_back(player3_hand);
+			else
+				push_back(draw);
 		}
 	
 		current_round++;
