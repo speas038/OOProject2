@@ -12,6 +12,7 @@ pthread_mutex_t mutex;
 pthread_cond_t condArray[4];
 pthread_cond_t startCond[4];
 pthread_cond_t start_game;
+pthread_cond_t next_round;
 int startArray[4] = {0,0,0,0};
 struct Deque* head = NULL;
 struct Deque* tail = NULL;
@@ -157,12 +158,7 @@ void shuffleDeque(void* val){
 }
 
 int signalNext(){
-	//using varialbes 
-	//current_round = 0
-	//current_player = 0
-	//starting_player = 1
-	
-	//ROUND 1
+
 	if(current_round == 1){
 		
 		if(current_player == 3)
@@ -201,9 +197,7 @@ int signalNext(){
 void* dealer(void* seed){
 
 	pthread_mutex_lock(&mutex);
-
 	startArray[0] = 1;
-
 	if(startArray[1] == 0){
 		printf("Dealer waiting for thread %d\n", 1);
 		pthread_cond_wait(&startCond[1], &mutex);
@@ -216,24 +210,22 @@ void* dealer(void* seed){
 		printf("Dealer waiting for thread %d\n", 3);
 		pthread_cond_wait(&startCond[3], &mutex);
 	}
-	
 	printf("Dealer broadcasting\n");
 	pthread_cond_broadcast(&startCond[0]);
-
 	printf("Dealer waiting for game start\n"); fflush(stdout);
 	pthread_cond_wait(&start_game, &mutex);
-
 	printf("Dealer starting\n");
-	pthread_mutex_unlock(&mutex);
+//	pthread_mutex_unlock(&mutex);
 
 	while(current_round < 3){
 
-		pthread_mutex_lock(&mutex);
+//		pthread_mutex_lock(&mutex);
 
 		if( current_round != 0 ){
 			printf("dealer waiting for signal\n");
 			dealer_ready = 1;
-			pthread_cond_signal(&condArray[0]);
+			pthread_cond_signal(&next_round);
+			printf("Dealer waiting for signal\n");
 			pthread_cond_wait(&condArray[0], &mutex);
 		}
 
@@ -243,13 +235,13 @@ void* dealer(void* seed){
 		printf("\n\n  ROUND %d\n", current_round);
 
 		//shuffle deque
-		displayDeque();
-		printf("Dealer Shuffling\n"); fflush(stdout);
+//		displayDeque();
+//		printf("Dealer Shuffling\n"); fflush(stdout);
 		shuffleDeque(seed);
-		displayDeque();
+//		displayDeque();
 
 		//Dealer deals
-		printf("Dealer dealing:\n");
+//		printf("Dealer dealing:\n");
 		player_hand[1] = pop();
 		player_hand[2] = pop();
 		player_hand[3] = pop();
@@ -257,6 +249,8 @@ void* dealer(void* seed){
 		pthread_mutex_unlock(&mutex);
 		pthread_cond_signal(&condArray[1]);
 	}
+	printf("CURRENT ROUND: %d\n", current_round);
+	pthread_cond_signal(&condArray[1]);
 
 	printf("DEALER EXITING\n");
 	pthread_exit(NULL);
@@ -285,33 +279,33 @@ void* player1(void* val){
 
 	while(current_round < 3){
 
-		pthread_mutex_lock(&mutex);
+//		pthread_mutex_lock(&mutex);
 		startup++;
 
 		if(startup == 3){
 			printf("Player %d signaling for game to start\n", my_rank); fflush(stdout);
 			pthread_cond_signal(&start_game);
 		}
-
+		printf("Player %d waiting for signal\n", my_rank);
 		pthread_cond_wait(&condArray[my_rank], &mutex);
 		
 		draw = pop();
-		printf("Player%d hand: %d\n",my_rank, player_hand[my_rank]);
-		printf("Player%d draw: %d\n",my_rank, draw);
+//		printf("Player%d hand: %d\n",my_rank, player_hand[my_rank]);
+//		printf("Player%d draw: %d\n",my_rank, draw);
 
 		if(draw == player_hand[my_rank]){
 			printf("WINNER\n");
-			printf("Ending Round %d\n", current_round);
+//			printf("Ending Round %d\n", current_round);
 			push_back(player_hand[my_rank]);
 			push_back(draw);
-			current_round++;
+//			current_round++;
 		}else{
 			if(rand() % 2 == 1){
-				printf("RETURNING CARD %d\n", player_hand[my_rank]);
+//				printf("RETURNING CARD %d\n", player_hand[my_rank]);
 				push_back(player_hand[my_rank]);
 				player_hand[my_rank] = draw;
 			}else{
-				printf("RETURNING CARD %d\n", draw);
+//				printf("RETURNING CARD %d\n", draw);
 				push_back(draw);
 			}
 		}
@@ -321,12 +315,14 @@ void* player1(void* val){
 			current_round++;
 			pthread_cond_signal(&condArray[0]);
 		}
-		
+
+
 		if(my_rank == 3 && dealer_ready == 0)
-			pthread_cond_wait(&condArray[0], &mutex);
+			printf("Player %d waiting for signal\n", my_rank);
+			pthread_cond_wait(&next_round, &mutex);
 
-		pthread_cond_signal(&condArray[0]);
-
+		pthread_cond_signal(&condArray[signal_next]);
+		dealer_ready = 0;
 		pthread_mutex_unlock(&mutex);
 
 	}
@@ -381,6 +377,7 @@ int main(int argc, char* argv[]){
 		pthread_cond_init(&startCond[i], NULL);
 	}
 	pthread_cond_init(&start_game, NULL);
+	pthread_cond_init(&next_round, NULL);
 
 	//create dealer and players
 	for(thread = 1; thread<=3; thread++)
@@ -400,6 +397,7 @@ int main(int argc, char* argv[]){
 		pthread_cond_destroy(&startCond[i]);
 	}
 	pthread_cond_destroy(&start_game);
+	pthread_cond_destroy(&next_round);
 	pthread_mutex_destroy(&mutex);	
 	destroyDeque();		
 	
