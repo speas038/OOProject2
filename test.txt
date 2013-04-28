@@ -1,0 +1,16 @@
+Dealer turn
+Player1 round 1
+Player2 round 1
+Player3 round 1
+Dealer turn
+Player2 round 2
+Player3 round 2
+Player1 round 2
+Dealer turn
+Player3 round 3
+Player1 round 3
+Player2 round 3
+DEALER EXITING
+PLAYER 3 EXITING
+PLAYER 1 EXITING
+PLAYER 2 EXITING

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+j=0
+
+for i in {1..500}
+do 
+	if [ "`./pairwar`" != "`cat test.txt`" ]
+	then
+		killall pairwar > /dev/null
+		((j++))
+	fi
+done
+
+echo test failed $j times
