@@ -21,8 +21,11 @@ int current_player = 0;
 struct Deque* head = NULL;
 struct Deque* tail = NULL;
 int winner = 0;
-int player_hand[4];
+int player_hand1[4];
+int player_hand2[4];
 int draw;
+
+FILE *fp = NULL;
 
 void push_back(int val){
 	
@@ -67,12 +70,27 @@ int dequeSize(){
 
 }
 
+
+void dequeToFile(){
+	
+	struct Deque* nodePtr;
+	nodePtr = head;
+
+	while(nodePtr != NULL){
+		fprintf(fp, "%d ", nodePtr->val);
+		nodePtr = nodePtr->next;
+	}
+	fprintf(fp, "\n");
+}
+
+
+
+
 void displayDeque(){
 	
 	struct Deque* nodePtr;
 	nodePtr = head;
 
-	printf("Displaying Deque\n");	
 	while(nodePtr != NULL){
 		printf("%d ", nodePtr->val);
 		nodePtr = nodePtr->next;
@@ -176,18 +194,70 @@ int signal_next(){
 	}
 }
 
-void dealer_turn(){
-	
-	
+void dealer_turn(void* seed){
+	int i;
+
+	printf("\nROUND %d\n", current_round);	
 	printf("Dealer turn\n");
+
+	fprintf(fp, "DEALER: shuffle\n");
+	shuffleDeque(seed);
+	fprintf(fp, "DECK ");
+	dequeToFile();
+	displayDeque();
+
+	for( i=1; i<=4; i++){
+		push_back(player_hand1[i]);
+		player_hand1[i] = pop();
+	}
+	
 
 }
 
-void player_turn(){
+int player_turn(int my_rank){
+	int temp;
+	int win = 0;
 	
-	
-	printf("Player%d round %d\n", current_player, current_round);
+	player_hand2[my_rank] = pop();
 
+	printf("Player %d\n", my_rank);
+	printf("HAND %d %d\n", player_hand1[my_rank], player_hand2[my_rank]);
+
+	if( player_hand1[my_rank] == player_hand2[my_rank] ){
+		printf("WIN yes\n");
+		win = 1;
+	}else{
+		printf("WIN no\n");
+		win = 0;
+	}
+	printf("DECK ");
+	displayDeque();
+
+
+	if( rand() % 2 == 0 ){
+		temp = player_hand1[my_rank];
+		player_hand1[my_rank] = player_hand2[my_rank];
+		player_hand2[my_rank] = temp;
+		push_back(player_hand2[my_rank]);
+	}else{
+		push_back(player_hand2[my_rank]);
+	}
+
+	fprintf(fp, "PLAYER %d: hand %d\n", my_rank, player_hand1[my_rank]);
+	fprintf(fp, "PLAYER %d: draws %d\n", my_rank, player_hand2[my_rank]);
+	fprintf(fp, "PLAYER %d: hand %d %d\n", my_rank, player_hand1[my_rank], player_hand2[my_rank]);
+	if( win == 1 ){
+		fprintf(fp, "PLAYER %d: wins\n", my_rank);
+		fprintf(fp, "PLAYER 1 exits round\n");
+		fprintf(fp, "PLAYER 2 exits round\n");
+		fprintf(fp, "PLAYER 3 exits round\n");
+	}else{
+
+		fprintf(fp, "PLAYER %d: discards %d\n", player_hand2[my_rank]);
+		fprintf(fp, "PLAYER %d: hand %d\n", player_hand1[my_rank]);
+	}
+
+	return win;
 }
 
 void* dealer(void* seed){
@@ -210,7 +280,7 @@ void* dealer(void* seed){
 
 		current_round++;
 
-		dealer_turn();
+		dealer_turn(seed);
 
 		pthread_cond_signal(&condArray[signal_next()]);
 		pthread_cond_wait(&condArray[0], &mutex);	
@@ -237,10 +307,11 @@ void* player(void* val){
 
 		if(current_round > 0){
 
-
-			player_turn();
-	
-			pthread_cond_signal(&condArray[signal_next()]);
+			if( player_turn(my_rank) ){
+				pthread_cond_signal(&condArray[0]);
+			}else{
+				pthread_cond_signal(&condArray[signal_next()]);
+			}
 		}
 		pthread_cond_wait(&condArray[my_rank], &mutex);
 	}
@@ -268,22 +339,14 @@ int main(int argc, char* argv[]){
 		printf("using default seed: %d\n", seed);
 	}
 
-	//this code is for testing purposes
-	if(seed == 1){
-
-		generateDeque();
-
-		for(i = 0; i<100; i++){
-			displayDeque();
-			printf("deque size: %d\n", dequeSize());
-			printf("pushing value %d\n", i);
-			push_back(i);
-			displayDeque();
-			pop();
-		}
-	
+	remove("output.txt");
+	fp = fopen("output.txt", "a");
+	if( fp == NULL ){
+		printf("ERROR OPENING output.txt, make sure file exists and that you have read and write permission\n");
+		return 0;
 	}
 
+	generateDeque();
 	
 	if( pthread_mutex_init(&mutex, NULL) != 0){
 		printf("Mutex Init Failed\n");
@@ -316,6 +379,7 @@ int main(int argc, char* argv[]){
 		pthread_cond_destroy(&startCond[i]);
 	}
 	pthread_mutex_destroy(&mutex);	
+	fclose(fp);
 	
 	return 0;
 }

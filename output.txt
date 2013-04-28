@@ -1,0 +1,53 @@
+DEALER: shuffle
+DECK 1 9 9 10 10 6 6 10 1 10 11 2 3 11 11 11 8 6 7 12 8 12 8 12 12 9 13 1 6 3 4 3 4 4 9 2 5 2 7 5 4 13 3 13 1 5 7 8 7 2 5 13 
+PLAYER 1: hand 10
+PLAYER 1: draws 1
+PLAYER 1: hand 10 1
+PLAYER 1: discards 4209573
+PLAYER 10: hand 4209680
+PLAYER 2: hand 6
+PLAYER 2: draws 9
+PLAYER 2: hand 6 9
+PLAYER 9: discards 4209573
+PLAYER 6: hand 4209680
+PLAYER 3: hand 9
+PLAYER 3: draws 6
+PLAYER 3: hand 9 6
+PLAYER 6: discards 4209573
+PLAYER 9: hand 4209680
+DEALER: shuffle
+DECK 10 13 3 13 1 4 6 5 10 7 8 3 11 7 2 5 2 3 4 13 2 0 7 0 0 5 0 1 1 6 12 8 12 8 4 11 12 2 9 13 8 1 7 9 11 9 4 5 3 11 12 6 
+PLAYER 2: hand 1
+PLAYER 2: draws 13
+PLAYER 2: hand 1 13
+PLAYER 13: discards 4209573
+PLAYER 1: hand 4209680
+PLAYER 3: hand 4
+PLAYER 3: draws 3
+PLAYER 3: hand 4 3
+PLAYER 3: discards 4209573
+PLAYER 4: hand 4209680
+PLAYER 1: hand 10
+PLAYER 1: draws 6
+PLAYER 1: hand 10 6
+PLAYER 6: discards 4209573
+PLAYER 10: hand 4209680
+DEALER: shuffle
+DECK 7 1 7 9 11 12 1 9 5 4 5 11 5 3 11 12 11 6 12 6 2 10 9 6 9 13 10 10 1 3 0 2 13 7 8 2 0 3 4 0 2 13 4 3 8 5 8 12 8 7 0 6 
+PLAYER 3: hand 11
+PLAYER 3: draws 7
+PLAYER 3: hand 11 7
+PLAYER 7: discards 4209573
+PLAYER 11: hand 4209680
+PLAYER 1: hand 12
+PLAYER 1: draws 7
+PLAYER 1: hand 12 7
+PLAYER 7: discards 4209573
+PLAYER 12: hand 4209680
+PLAYER 2: hand 1
+PLAYER 2: draws 1
+PLAYER 2: hand 1 1
+PLAYER 2: wins
+PLAYER 1 exits round
+PLAYER 2 exits round
+PLAYER 3 exits round
