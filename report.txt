@@ -1,0 +1,32 @@
+Pairwar by Alex Speasmaker
+
+
+This program is implemented using pthreads and the function pthread_cond_wait.
+The program uses a deque data structure that I implemented myself with a head
+and a tail pointer.  The deque is accessed using two functions pop() and
+push_back().
+
+Chronology of program:
+
+The program receives a seed as input from the user and uses the default seed
+if none is provided.  
+
+The program removes the file "output.txt" if it already exists and will create
+it if it doesn't.  If there is any error opening the file, the user will be
+notified.
+
+The program spawns 4 threads, one dealer and 3 players.
+Each player has an element in the player_hand1 and player_hand2 arrays.
+
+The dealer first waits for all threads to spawn by checking the associated
+value in the startCond array or the players value in startArray.  Once all
+players have signaled the dealer, the game begins.
+
+Each thread is in a loop that is stopped by the value of current_round
+reaching a maximum value.  each player executes the player_turn function which
+contains all the code for a palyers turn.  If the function returns true then
+the player won and the current round is short circuted and dealer is signaled
+to begin a new round.
+
+Once the round threshold has been reached each player signals the next in
+sequence, prints that it is exiting releases the lock and exits.
