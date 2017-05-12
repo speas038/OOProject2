@@ -1,3 +1,3 @@
 
 pairwar:pairwar.c
-	gcc -O3 -lpthread pairwar.c -o pairwar
+	gcc -pthread pairwar.c -o pairwar
